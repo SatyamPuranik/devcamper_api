@@ -5,7 +5,8 @@ const {
   getBootcamp,
   createBootcamp,
   updateBootcamp,
-  deleteBootcamp
+  deleteBootcamp,
+  getBootcampsInRadius
 } = require('../controllers/bootcamps');
 
 // we now no longer have access to app that was in server.js, we will replace app with router
@@ -16,5 +17,7 @@ router
   .get(getBootcamp)
   .put(updateBootcamp)
   .delete(deleteBootcamp);
+
+router.route('/radius/:zipcode/:distance').get(getBootcampsInRadius);
 
 module.exports = router;

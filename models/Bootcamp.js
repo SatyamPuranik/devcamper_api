@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
+const geocoder = require('../utilis/geocoder');
 
 const BootcampSchema = new mongoose.Schema({
   name: {
@@ -96,6 +98,31 @@ const BootcampSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
+});
+
+// Create bootcamp slug from the name
+BootcampSchema.pre('save', function (next) {
+  this.slug = slugify(this.name, { lower: true });
+  next();
+});
+
+// Geocode and create location field
+BootcampSchema.pre('save', async function (next) {
+  const loc = await geocoder.geocode(this.address);
+  this.location = {
+    type: 'Point',
+    coordinates: [loc[0].longitude, loc[0].latitude],
+    formattedAddress: loc[0].formattedAddress,
+    street: loc[0].streetname,
+    city: loc[0].city,
+    state: loc[0].stateCode,
+    zipcode: loc[0].zipcode,
+    country: loc[0].countryCode
+  };
+
+  // Do not save address in DB
+  this.address = undefined; //We are collecting address, then disecting it, geocoding it, and then saving it in location feild. Now we dont want to save that address feild in our database, so we are setting it to undefined due to which it wont be added in our DB.
+  next();
 });
 
 module.exports = mongoose.model('Bootcamp', BootcampSchema);

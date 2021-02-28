@@ -1,6 +1,7 @@
 // Here we are going to create different methods that are going to be associated with different routes. We need to export each method so that we can bring it into the routes file.
 const ErrorResponse = require('../utilis/errorResponse'); //We are bringing ErrorResponse to create a error response object with a message and a statusCode
 const asyncHandler = require('../middleware/async');
+const geocoder = require('../utilis/geocoder');
 const Bootcamp = require('../models/Bootcamp');
 
 // @desc     Get all bootcamps
@@ -152,5 +153,32 @@ exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     success: true,
     data: {}
+  });
+});
+
+// @desc     Get bootcamps within a radius
+// @route    GET /api/v1/bootcamp/radius/:zipcode/:distance
+// @access   Private
+exports.getBootcampsInRadius = asyncHandler(async (req, res, next) => {
+  const { zipcode, distance } = req.params;
+
+  // Get lat/lng from geocoder
+  const loc = await geocoder.geocode(zipcode);
+  const lat = loc[0].latitude;
+  const lng = loc[0].longitude;
+
+  // Clac radius using radians
+  // Divide distance by radius of earth
+  // Earth radius = 3,963 mi / 6,378 km
+  const radius = distance / 3963;
+
+  const bootcamps = await Bootcamp.find({
+    location: { $geoWithin: { $centerSphere: [[lng, lat], radius] } }
+  });
+
+  res.status(200).json({
+    success: true,
+    count: bootcamps.length,
+    data: bootcamps
   });
 });
