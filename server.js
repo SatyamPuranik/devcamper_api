@@ -13,6 +13,7 @@ connectDB();
 
 // Route files
 const bootcamps = require('./routes/bootcamps');
+const courses = require('./routes/courses');
 
 const app = express();
 
@@ -27,6 +28,7 @@ if (process.env.NODE_ENV === 'development') {
 
 // Mount routers
 app.use('/api/v1/bootcamps', bootcamps); //We are linking with this route(/api/v1/bootcamps) with bootcamps(./routes/bootcamps).
+app.use('/api/v1/courses', courses);
 
 // To use middleware we need to run them through app.use
 // We want to use middleware in bootcamps controller method so they should come after it. Because execution will be in a linear order.
