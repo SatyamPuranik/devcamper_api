@@ -2,6 +2,8 @@ const express = require('express');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
 const colors = require('colors');
+const path = require('path');
+const fileupload = require('express-fileupload');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/error');
 
@@ -25,6 +27,12 @@ app.use(express.json()); //So req.body will not be undefined
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev')); //It will log the method, URL, status code, time
 }
+
+// File uploading
+app.use(fileupload());
+
+// Set static folder
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Mount routers
 app.use('/api/v1/bootcamps', bootcamps); //We are linking with this route(/api/v1/bootcamps) with bootcamps(./routes/bootcamps).
