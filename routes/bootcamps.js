@@ -16,21 +16,23 @@ const advancedResults = require('../middleware/advancedResults');
 // Include other resource routers
 const courseRouter = require('./courses');
 
+const { protect } = require('../middleware/auth');
+
 // we now no longer have access to app that was in server.js, we will replace app with router
 // We now dont include /api/v1/bootcamps in this file, because we have linked the route (/api/v1/bootcamps) to this file in server.js. /api/v1/bootcamps is /
 router
   .route('/')
   .get(advancedResults(Bootcamp, 'courses'), getBootcamps)
-  .post(createBootcamp); //They take same URL so we can write like this
+  .post(protect, createBootcamp); //They take same URL so we can write like this
 router
   .route('/:id')
   .get(getBootcamp)
-  .put(updateBootcamp)
-  .delete(deleteBootcamp);
+  .put(protect, updateBootcamp)
+  .delete(protect, deleteBootcamp);
 
 router.route('/radius/:zipcode/:distance').get(getBootcampsInRadius);
 
-router.route('/:id/photo').put(bootcampPhotoUpload);
+router.route('/:id/photo').put(protect, bootcampPhotoUpload);
 
 // Re-route into other resource router
 router.use('/:bootcampId/courses', courseRouter);
