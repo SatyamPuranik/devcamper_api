@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const colors = require('colors');
 const path = require('path');
 const fileupload = require('express-fileupload');
+const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/error');
 
@@ -22,6 +23,9 @@ const app = express();
 
 // Body parser
 app.use(express.json()); //So req.body will not be undefined
+
+// Cookie parser
+app.use(cookieParser());
 
 // Dev logging middleware
 // We want it to run if we are in development environment

@@ -16,13 +16,14 @@ exports.register = asyncHandler(async (req, res, next) => {
     role
   });
 
-  // Create token
-  const token = user.getSignedJwtToken(); //We are using a method not a static. A method is called on a actual user and a static is called on the object itself. {*Same as static function in classes and methods in classes}
+  // // Create token
+  // const token = user.getSignedJwtToken(); //We are using a method not a static. A method is called on a actual user and a static is called on the object itself. {*Same as static function in classes and methods in classes}
 
-  res.status(200).json({
-    success: true,
-    token
-  });
+  // res.status(200).json({
+  //   success: true,
+  //   token
+  // });
+  sendTokenResponse(user, 200, res);
 });
 
 // @desc     Login user
@@ -50,11 +51,29 @@ exports.login = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Invalid credentials', 401));
   }
 
+  sendTokenResponse(user, 200, res);
+});
+
+// CUSTOM FUNCTION - Get token from model, create cookie and send response
+const sendTokenResponse = (user, statusCode, res) => {
   // Create token
   const token = user.getSignedJwtToken();
 
-  res.status(200).json({
-    success: true,
-    token
-  });
-});
+  const options = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true
+  };
+
+  if (process.env.NODE_ENV === 'production') {
+    // We don't want secure to be true for devlopment mode
+    options.secrue = true;
+  }
+
+  res
+    .status(statusCode)
+    .cookie('token', token, options)
+    .json({ success: true, token });
+  // cookie takes key(what is it called), value and options
+};
