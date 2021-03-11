@@ -54,6 +54,41 @@ exports.login = asyncHandler(async (req, res, next) => {
   sendTokenResponse(user, 200, res);
 });
 
+// @desc     Get current logged in user
+// @route    GET /api/v1/auth/me
+// @access   Private
+exports.getMe = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user.id);
+
+  res.status(200).json({
+    success: true,
+    data: user
+  });
+});
+
+// @desc     Forgot Password
+// @route    GET /api/v1/auth/forgotpassword
+// @access   Public
+exports.forgotPassword = asyncHandler(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email }); //Getting the user by email that is sent in the body
+
+  if (!user) {
+    return next(new ErrorResponse('There is no user with that email', 404));
+  }
+
+  // Get reset token
+  const resetToken = user.getResetPasswordToken();
+
+  console.log(resetToken);
+
+  await user.save({ validateBeforeSave: false }); //So resetPasswordToken and resetPasswordExpire fields will be stored in DB
+
+  res.status(200).json({
+    success: true,
+    data: user
+  });
+});
+
 // CUSTOM FUNCTION - Get token from model, create cookie and send response
 const sendTokenResponse = (user, statusCode, res) => {
   // Create token
@@ -77,15 +112,3 @@ const sendTokenResponse = (user, statusCode, res) => {
     .json({ success: true, token });
   // cookie takes key(what is it called), value and options
 };
-
-// @desc     Get current logged in user
-// @route    GET /api/v1/auth/me
-// @access   Private
-exports.getMe = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.user.id);
-
-  res.status(200).json({
-    success: true,
-    data: user
-  });
-});
