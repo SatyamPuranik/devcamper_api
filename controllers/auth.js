@@ -2,6 +2,7 @@ const ErrorResponse = require('../utilis/errorResponse');
 const asyncHandler = require('../middleware/async');
 const User = require('../models/User');
 const sendEmail = require('../utilis/sendEmail');
+const crypto = require('crypto');
 
 // @desc     Register user
 // @route    POST /api/v1/auth/register
@@ -111,6 +112,39 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 
     return next(new ErrorResponse('Email could not be sent', 500));
   }
+});
+
+// @desc     Reset password
+// @route    PUT /api/v1/auth/resetpassword/:resettoken
+// @access   Public
+exports.resetPassword = asyncHandler(async (req, res, next) => {
+  // Get hased token
+  const resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(req.params.resettoken)
+    .digest('hex');
+
+  // Find the user by reset token
+  const user = await User.findOne({
+    resetPasswordToken,
+    resetPasswordExpire: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    return next(new ErrorResponse('Invalid Token', 400));
+  }
+
+  // Set new password to the the password that is sent in through body
+  user.password = req.body.password; //New password will automatically incripted because of our middleware
+
+  // Again set resetPasswordToken & resetPasswordExpire to undefined
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+
+  await user.save();
+
+  // Now we will send a token and the user will be logged in
+  sendTokenResponse(user, 200, res);
 });
 
 // CUSTOM FUNCTION - Get token from model, create cookie and send response
