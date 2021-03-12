@@ -87,7 +87,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   // Create reset url
   const resetUrl = `${req.protocol}://${req.get(
     'host'
-  )}/api/v1/resetpassword/${resetToken}`;
+  )}/api/v1/auth/resetpassword/${resetToken}`;
 
   const message = `You are reciving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to :\n\n ${resetUrl}`;
 
@@ -111,11 +111,6 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 
     return next(new ErrorResponse('Email could not be sent', 500));
   }
-
-  res.status(200).json({
-    success: true,
-    data: user
-  });
 });
 
 // CUSTOM FUNCTION - Get token from model, create cookie and send response
